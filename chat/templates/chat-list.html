@@ -23,33 +23,34 @@
             </div>
         </div>
         <!-- List of Previous Chats -->
-        <ul class="chat-list">
-            <li class="chat-item border rounded p-2 mb-4 hover:bg-gray-100">
-                <a href="chat-details" class="chat-link flex items-center">
-                    <div class="chat-avatar" style="width:60px;height:60px;">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png" alt="User 1">
-                    </div>
-                    <div class="chat-details">
-                        <h3 class="chat-title">ChatBot name</h3>
-                        <p class="chat-preview">chat title</p>
-                        <p class="chat-date">date of last message: </p>
-                    </div>
-                </a>
-            </li>
-            <!-- Add more chat items here with the same added styles -->
-        </ul>
-        <!-- Pagination -->
-        <div class="pagination flex space-x-2">
-            <ul>
-                <li><a href="#">1</a></li>
-                <li><a href="#">2</a></li>
-                <!-- Add more pages as needed -->
+        {% for bot in bot_list %}
+            <ul class="chat-list">
+                <li class="chat-item border rounded p-2 mb-4 hover:bg-gray-100">
+                    <a href="{% url 'chat_details' %}" class="chat-link flex items-center">
+                        <div class="chat-avatar" style="width:60px;height:60px;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png" alt="User 1">
+                        </div>
+                        <div class="chat-details">
+                            <h3 class="chat-title">{{ bot.name }}</h3>
+                            <p class="chat-preview">{{ bot.title }}</p>
+                            <p class="chat-date">{{ bot.last_message_date }}</p>
+                        </div>
+                    </a>
+                </li>
             </ul>
-        </div>
+        {% endfor %}
+        <!-- Pagination -->
+        {% for conversations in conversations_list %}
+            <div class="pagination flex space-x-2">
+                <ul>
+                    <li><a href="#">{{ conversations.title }}</a></li>
+                </ul>
+            </div>
+        {% endfor %}
     </div>
     <footer>
         <div class="container mx-auto">
-            <a href="create-chat" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">Create New Chat</a>
+            <a href="{% url 'create_chat' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">Create New Chat</a>
         </div>
     </footer>
 </body>

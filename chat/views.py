@@ -43,11 +43,11 @@ def register(request: HttpRequest):
 def chat_list(request: HttpRequest, page: int = 0):
     PAGE_LENGTH = 10
 
+    context = {'1': 'SALAM', '2':'KHOOBI', '3': 'CHEKHABAR'}
     bot_list = Bot.objects.all()
     conversations_list = Conversation.objects.all()[page * PAGE_LENGTH: page * PAGE_LENGTH + PAGE_LENGTH]
-
-
-    return render(request, "chat-list.html")
+    
+    return render(request, "chat-list.html", {"bot_list": bot_list, 'conversations_list': conversations_list})
 
 
 @login_required
