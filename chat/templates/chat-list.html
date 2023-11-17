@@ -43,7 +43,7 @@
         {% for conversations in conversations_list %}
             <div class="pagination flex space-x-2">
                 <ul>
-                    <li><a href="#">{{ conversations.title }}</a></li>
+                    <li><a href="{% url 'chat_details' %}">{{ conversations.title }}</a></li>
                 </ul>
             </div>
         {% endfor %}

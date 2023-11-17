@@ -11,7 +11,7 @@
     <!-- Header -->
     <header class="bg-gray-800 text-white p-4">
         <div class="container mx-auto">
-            <a href="{% url 'chat_list' 0 %}" class="block text-2xl font-semibold text-white mb-4">
+            <a href="{% url 'chat_list' %}" class="block text-2xl font-semibold text-white mb-4">
                 Back to Chat History
             </a>
         </div>
@@ -24,17 +24,15 @@
                 <div class="message received flex items-center mb-2  border rounded p-2 mb-4 hover:bg-gray-100">
                     <button class="btn-like">👍</button>
                     <button class="btn-dislike">👎</button>
-                    <div class="message-content ml-2">Hello, how are you?</div>
-                </div>
-                <div class="message sent flex items-center justify-end  border rounded p-2 mb-4 hover:bg-gray-100">
-                    <div class="message-content">I'm good, thanks!</div>
-                </div>
-                <!-- Add more chat messages as needed -->
+                    <div class="message-content ml-2">{{ responses }}</div>
+                    </div>
             </div>
             <!-- Message Input -->
             <div class="message-input flex items-center">
-                <input type="text" placeholder="Type your message" class="flex-1 border rounded py-2 px-3 mr-2">
-                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 border border-blue-700 rounded">Send</button>
+                <form action="{% url 'chat_details' %}" method="post" class="flex-1 border rounded py-2 px-3 mr-2">
+                    {% csrf_token %}
+                    {{ form }}
+                    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 border border-blue-700 rounded">Send</button>
             </div>
         </div>
     </div>
