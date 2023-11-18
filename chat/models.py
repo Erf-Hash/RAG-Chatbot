@@ -31,3 +31,4 @@ class Conversation(models.Model):
     messages = models.ForeignKey(
         Message, on_delete=models.CASCADE, default=None, null=True
     )
+    bot = models.ForeignKey(Bot, on_delete=models.DO_NOTHING)

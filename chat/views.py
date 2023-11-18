@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login as create_token
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from .models import User, Bot, Conversation, Message
-from .forms import ChatForm, SubmitForm
+from .forms import ChatForm
 from openai import OpenAI
 
 
@@ -49,7 +49,6 @@ def chat_list(request: HttpRequest):
     context = {"1": "SALAM", "2": "KHOOBI", "3": "CHEKHABAR"}
     bot_list = Bot.objects.all()
     conversations_list = Conversation.objects.all()
-    conversation_submit_form = SubmitForm()
 
     return render(
         request,
@@ -57,7 +56,6 @@ def chat_list(request: HttpRequest):
         {
             "bot_list": bot_list,
             "conversations_list": conversations_list,
-            "conversation_submit_form": conversation_submit_form,
         },
     )
 
@@ -73,13 +71,16 @@ def chat_details(request: HttpRequest, id: int):
     if id > 0:
         conversation = Conversation.objects.get(pk=id)
         chatbot = conversation.bot
+        conversation.save()
     else:
         chatbot = Bot.objects.get(pk=-id)
         conversation = Conversation.objects.get(bot=chatbot)
+        chatbot.save()
 
     if request.method != "POST":
         form = ChatForm()
         return render(request, "chat-details.html", {"form": form, "conversation": conversation})
+    
 
     form = ChatForm(request.POST)
     if not form.is_valid():
@@ -107,6 +108,8 @@ def chat_details(request: HttpRequest, id: int):
     user_message.save()
     bot_message = Message(message=chat_completion["choices"][0]["message"]["content"])
     bot_message.save()
+
+    # add messages to conversation
 
     return render(
         request,
