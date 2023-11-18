@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login as create_token
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from .models import User, Bot, Conversation, Message
-from .forms import ChatForm
+from .forms import ChatForm, SubmitForm
 from openai import OpenAI
 
 
@@ -22,7 +22,7 @@ def login(request: HttpRequest):
         raise Http404()
 
     create_token(request, user)
-    return redirect(reverse("chat_list", kwargs={"page": 0}))
+    return redirect(reverse("chat_list"))
 
 
 def register(request: HttpRequest):
@@ -49,11 +49,16 @@ def chat_list(request: HttpRequest):
     context = {"1": "SALAM", "2": "KHOOBI", "3": "CHEKHABAR"}
     bot_list = Bot.objects.all()
     conversations_list = Conversation.objects.all()
+    conversation_submit_form = SubmitForm()
 
     return render(
         request,
         "chat-list.html",
-        {"bot_list": bot_list, "conversations_list": conversations_list},
+        {
+            "bot_list": bot_list,
+            "conversations_list": conversations_list,
+            "conversation_submit_form": conversation_submit_form,
+        },
     )
 
 
@@ -63,10 +68,18 @@ def create_chat(request: HttpRequest):
 
 
 @login_required
-def chat_details(request: HttpRequest):
+def chat_details(request: HttpRequest, id: int):
+    id = int(id)
+    if id > 0:
+        conversation = Conversation.objects.get(pk=id)
+        chatbot = conversation.bot
+    else:
+        chatbot = Bot.objects.get(pk=-id)
+        conversation = Conversation.objects.get(bot=chatbot)
+
     if request.method != "POST":
         form = ChatForm()
-        return render(request, "chat-details.html", {"form": form})
+        return render(request, "chat-details.html", {"form": form, "conversation": conversation})
 
     form = ChatForm(request.POST)
     if not form.is_valid():
@@ -89,8 +102,6 @@ def chat_details(request: HttpRequest):
             n=1,
         )
     )
-
-    
 
     user_message = Message(message=form.cleaned_data["query"])
     user_message.save()
