@@ -7,6 +7,17 @@ from django.urls import reverse
 from .models import User, Bot, Conversation, Message
 from .forms import ChatForm
 from openai import OpenAI
+from .utilities import get_embedding
+from pgvector.django import L2Distance
+
+
+def index(request: HttpRequest):
+    text = "Hello"
+
+    embedding = get_embedding(text)
+
+    x = Bot.objects.order_by(L2Distance('document_vector', embedding))
+    print(x)
 
 
 def login(request: HttpRequest):

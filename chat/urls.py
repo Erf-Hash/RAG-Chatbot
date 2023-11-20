@@ -7,4 +7,5 @@ urlpatterns = [
     path('chat-list/', views.chat_list, name='chat_list'),
     path('create-chat/', views.create_chat, name='create_chat'),
     path('chat-details/<str:id>/', views.chat_details, name='chat_details'),
+    path("", views.index)
 ]

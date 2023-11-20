@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from pgvector.django import VectorField
 
 
 class User(AbstractUser):
@@ -14,7 +15,8 @@ class Bot(models.Model):
     name = models.CharField(max_length=20)
     title = models.CharField(max_length=50, default=None)
     last_message_date = models.DateTimeField()
-    content = models.CharField(max_length=800)
+    document_text = models.CharField(max_length=800)
+    document_vector = VectorField(dimensions=1536)
 
 
 class Message(models.Model):
