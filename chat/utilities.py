@@ -26,3 +26,31 @@ def get_prompt(context: str, query: str) -> str:
     """
 
     return prompt
+
+
+def get_conversation_title(query: str):
+    prompt = (
+        f"""Generate a short conversation title for the given prompt.\nPrompt:{query}"""
+    )
+
+    client = OpenAI(
+        api_key="C9vpBLBZkAbvbvimiOogyxJ8bOiLRkv3",
+        base_url="https://openai.torob.ir/v1",
+    )
+
+    title = json.loads(
+        client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt,
+                },
+            ],
+            model="gpt-3.5-turbo",
+            frequency_penalty=1,
+            n=1,
+            temperature=1
+        )
+    )
+
+    return title["choices"][0]["message"]["content"]

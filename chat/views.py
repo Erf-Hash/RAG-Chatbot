@@ -2,22 +2,14 @@ import json
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse, Http404
 from django.contrib.auth import authenticate, login as create_token
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
-from .models import User, Bot, Conversation, Message
+from .models import Bot, Conversation, Message
 from .forms import ChatForm
 from openai import OpenAI
-from .utilities import get_embedding, get_prompt
+from .utilities import get_embedding, get_prompt, get_conversation_title
 from pgvector.django import L2Distance
-
-
-def index(request: HttpRequest):
-    text = "Hello"
-
-    embedding = get_embedding(text)
-
-    x = Bot.objects.order_by(L2Distance("document_vector", embedding))
-    print(x)
 
 
 def login(request: HttpRequest):
@@ -101,6 +93,9 @@ def chat_details(request: HttpRequest, id: int):
     )
     prompt = get_prompt(context=nearby_documents, query=form.cleaned_data["query"])
 
+    if conversation.title is None:
+        conversation.title = get_conversation_title(form.cleaned_data["query"])
+
     client = OpenAI(
         api_key="C9vpBLBZkAbvbvimiOogyxJ8bOiLRkv3",
         base_url="https://openai.torob.ir/v1",
@@ -110,7 +105,7 @@ def chat_details(request: HttpRequest, id: int):
             messages=[
                 {
                     "role": "user",
-                    "content": prompt   ,
+                    "content": prompt,
                 },
             ],
             model="gpt-3.5-turbo",
@@ -119,9 +114,14 @@ def chat_details(request: HttpRequest, id: int):
         )
     )
 
-    user_message = Message(message=form.cleaned_data["query"], conversation=conversation)
+    user_message = Message(
+        message=form.cleaned_data["query"], conversation=conversation
+    )
     user_message.save()
-    bot_message = Message(message=chat_completion["choices"][0]["message"]["content"], conversation=conversation)
+    bot_message = Message(
+        message=chat_completion["choices"][0]["message"]["content"],
+        conversation=conversation,
+    )
     bot_message.save()
 
     # add messages to conversation
