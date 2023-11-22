@@ -47,7 +47,7 @@ def register(request: HttpRequest):
 
 @login_required
 def chat_list(request: HttpRequest):
-    bot_list = Bot.objects.all()
+    bot_list = Bot.objects.filter(creator = request.user)
     conversations_list = Conversation.objects.all()
 
     return render(
@@ -73,7 +73,8 @@ def chat_details(request: HttpRequest, id: int):
         chatbot = conversation.bot
     else:
         chatbot = Bot.objects.get(pk=-id)
-        conversation = Conversation.objects.get(bot=chatbot)
+        conversation = Conversation(bot=chatbot, title="DEFAULT")
+        conversation.save()
 
     if request.method != "POST":
         form = ChatForm()
@@ -93,15 +94,15 @@ def chat_details(request: HttpRequest, id: int):
     )
     prompt = get_prompt(context=nearby_documents, query=form.cleaned_data["query"])
 
-    if conversation.title is None:
+    if conversation.title == "DEFAULT":
         conversation.title = get_conversation_title(form.cleaned_data["query"])
+        conversation.save()
 
     client = OpenAI(
         api_key="C9vpBLBZkAbvbvimiOogyxJ8bOiLRkv3",
         base_url="https://openai.torob.ir/v1",
     )
-    chat_completion = json.loads(
-        client.chat.completions.create(
+    chat_completion = client.chat.completions.create(
             messages=[
                 {
                     "role": "user",
@@ -112,14 +113,13 @@ def chat_details(request: HttpRequest, id: int):
             frequency_penalty=0,
             n=1,
         )
-    )
 
     user_message = Message(
         message=form.cleaned_data["query"], conversation=conversation
     )
     user_message.save()
     bot_message = Message(
-        message=chat_completion["choices"][0]["message"]["content"],
+        message=chat_completion.choices[0].message.content,
         conversation=conversation,
     )
     bot_message.save()

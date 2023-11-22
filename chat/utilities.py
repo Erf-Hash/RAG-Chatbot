@@ -1,4 +1,3 @@
-import json
 from openai import OpenAI
 
 
@@ -10,12 +9,11 @@ def get_embedding(text: str):
 
     text = text.replace("\n", " ")
 
-    response = json.loads(
-        client.embeddings.create(
-            input=text, model="text-embedding-ada-002", encoding_format="float"
-        )
+    response = client.embeddings.create(
+        input=text, model="text-embedding-ada-002", encoding_format="float"
     )
-    return response["data"][0]["embedding"]
+
+    return response.data[0].embedding
 
 
 def get_prompt(context: str, query: str) -> str:
@@ -38,8 +36,7 @@ def get_conversation_title(query: str):
         base_url="https://openai.torob.ir/v1",
     )
 
-    title = json.loads(
-        client.chat.completions.create(
+    title = client.chat.completions.create(
             messages=[
                 {
                     "role": "user",
@@ -51,6 +48,5 @@ def get_conversation_title(query: str):
             n=1,
             temperature=1
         )
-    )
 
-    return title["choices"][0]["message"]["content"]
+    return title.choices[0].message.content
