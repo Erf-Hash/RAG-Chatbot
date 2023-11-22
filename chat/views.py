@@ -7,7 +7,7 @@ from django.urls import reverse
 from .models import User, Bot, Conversation, Message
 from .forms import ChatForm
 from openai import OpenAI
-from .utilities import get_embedding
+from .utilities import get_embedding, get_prompt
 from pgvector.django import L2Distance
 
 
@@ -16,7 +16,7 @@ def index(request: HttpRequest):
 
     embedding = get_embedding(text)
 
-    x = Bot.objects.order_by(L2Distance('document_vector', embedding))
+    x = Bot.objects.order_by(L2Distance("document_vector", embedding))
     print(x)
 
 
@@ -55,9 +55,6 @@ def register(request: HttpRequest):
 
 @login_required
 def chat_list(request: HttpRequest):
-    PAGE_LENGTH = 10
-
-    context = {"1": "SALAM", "2": "KHOOBI", "3": "CHEKHABAR"}
     bot_list = Bot.objects.all()
     conversations_list = Conversation.objects.all()
 
@@ -82,20 +79,27 @@ def chat_details(request: HttpRequest, id: int):
     if id > 0:
         conversation = Conversation.objects.get(pk=id)
         chatbot = conversation.bot
-        conversation.save()
     else:
         chatbot = Bot.objects.get(pk=-id)
         conversation = Conversation.objects.get(bot=chatbot)
-        chatbot.save()
 
     if request.method != "POST":
         form = ChatForm()
-        return render(request, "chat-details.html", {"form": form, "conversation": conversation})
-    
+        return render(
+            request, "chat-details.html", {"form": form, "conversation": conversation}
+        )
 
     form = ChatForm(request.POST)
     if not form.is_valid():
         raise Http404("Please fill the form properly")
+
+    embedding = get_embedding(form.cleaned_data["query"])
+    nearby_documents = (
+        Bot.objects.order_by(L2Distance("document_vector", embedding))
+        .first()
+        .document_text
+    )
+    prompt = get_prompt(context=nearby_documents, query=form.cleaned_data["query"])
 
     client = OpenAI(
         api_key="C9vpBLBZkAbvbvimiOogyxJ8bOiLRkv3",
@@ -106,7 +110,7 @@ def chat_details(request: HttpRequest, id: int):
             messages=[
                 {
                     "role": "user",
-                    "content": form.cleaned_data["query"],
+                    "content": prompt   ,
                 },
             ],
             model="gpt-3.5-turbo",
@@ -115,9 +119,9 @@ def chat_details(request: HttpRequest, id: int):
         )
     )
 
-    user_message = Message(message=form.cleaned_data["query"])
+    user_message = Message(message=form.cleaned_data["query"], conversation=conversation)
     user_message.save()
-    bot_message = Message(message=chat_completion["choices"][0]["message"]["content"])
+    bot_message = Message(message=chat_completion["choices"][0]["message"]["content"], conversation=conversation)
     bot_message.save()
 
     # add messages to conversation
