@@ -1,37 +1,28 @@
 version: '3.8'
 
 services: 
-  postgres:
-    container_name: postgres
-    networks:
-      - net1
-    image: ankane/pgvector:latest
-    volumes:
-     - vol1
-
   django:
     container_name: django
-    networks:
-      - net1
-    env_file:
-      - ./.env
-    ports:
-      - 8000:9000
-    image: bootguard:latest
+    port:
+      - "8000:8000"
+    image: chatbot:111111
     build: .
-    volumes:
-      - bootguard:/data
     depends_on:
-      postgres
-    command: python3 manage.py startserver
+      - postgres
+    command: bash -c "python3 /app/manage.py runserver"
+    
 
-
-networks:
-  local:
-    name: net1
+  postgres:
+    container_name: postgres
+    port:
+      - "5432:5432"
+    image: ankane/pgvector:latest
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+     - vol1:/data
 
   
 volumes:
-  bootguard:
+  vol1:
     name: vol1
-    external: true

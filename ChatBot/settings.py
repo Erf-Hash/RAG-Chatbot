@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.postgres',
     'chat.apps.ChatConfig',
     'mathfilters',
 ]
@@ -78,9 +79,9 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'ChatBot.wsgi.application'
-DB_USER = os.getenv('DB_USER')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
-DB_HOST = os.getenv('DB_HOST', 'localhost')
+DB_USER = os.getenv('DB_USER', "postgres")
+DB_PASSWORD = os.getenv('DB_PASSWORD', "postgres")
+DB_HOST = os.getenv('DB_HOST', '::1')
 DB_PORT = os.getenv('DB_PORT', 5432)
 
 
