@@ -3,7 +3,6 @@ from ChatBot import settings
 from pgvector.django import L2Distance
 
 
-
 def chat(
     prompt: str,
     model: str = "gpt-3.5-turbo",
@@ -41,15 +40,6 @@ def get_embedding(text: str):
     )
 
     return response.data[0].embedding
-
-
-def get_nearest_document(prompt: str):
-    embedding = get_embedding(prompt)
-    return (
-        Bot.objects.order_by(L2Distance("document_vector", embedding))
-        .first()
-        .document_text
-    )
 
 
 def get_prompt(context: str, query: str) -> str:
