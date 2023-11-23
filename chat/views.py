@@ -1,14 +1,17 @@
-import json
 from django.shortcuts import render, redirect
-from django.http import HttpRequest, HttpResponse, Http404
-from django.contrib.auth import authenticate, login as create_token
+from django.http import HttpRequest, Http404
+from django.contrib.auth import login as create_token
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from .models import Bot, Conversation, Message
 from .forms import ChatForm
-from openai import OpenAI
-from .utilities import get_embedding, get_prompt, get_conversation_title
+from .utilities import (
+    get_prompt,
+    get_conversation_title,
+    chat,
+    get_embedding,
+)
 from pgvector.django import L2Distance
 
 
@@ -47,7 +50,7 @@ def register(request: HttpRequest):
 
 @login_required
 def chat_list(request: HttpRequest):
-    bot_list = Bot.objects.filter(creator = request.user)
+    bot_list = Bot.objects.filter(creator=request.user)
     conversations_list = Conversation.objects.all()
 
     return render(
@@ -98,21 +101,7 @@ def chat_details(request: HttpRequest, id: int):
         conversation.title = get_conversation_title(form.cleaned_data["query"])
         conversation.save()
 
-    client = OpenAI(
-        api_key="C9vpBLBZkAbvbvimiOogyxJ8bOiLRkv3",
-        base_url="https://openai.torob.ir/v1",
-    )
-    chat_completion = client.chat.completions.create(
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt,
-                },
-            ],
-            model="gpt-3.5-turbo",
-            frequency_penalty=0,
-            n=1,
-        )
+    chat_completion = chat(prompt, frequence_penalty=1)
 
     user_message = Message(
         message=form.cleaned_data["query"], conversation=conversation

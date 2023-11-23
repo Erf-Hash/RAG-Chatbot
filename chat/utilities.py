@@ -1,10 +1,37 @@
 from openai import OpenAI
+from ChatBot import settings
+from pgvector.django import L2Distance
+
+
+
+def chat(
+    prompt: str,
+    model: str = "gpt-3.5-turbo",
+    frequence_penalty: int | None = None,
+    temperature: int | None = None,
+):
+    client = OpenAI(
+        api_key=settings.OPENAI_API_KEY,
+        base_url=settings.OPENAI_BASE_URL,
+    )
+    return client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            },
+        ],
+        model=model,
+        frequency_penalty=0,
+        temperature=temperature,
+        n=1,
+    )
 
 
 def get_embedding(text: str):
     client = OpenAI(
-        api_key="C9vpBLBZkAbvbvimiOogyxJ8bOiLRkv3",
-        base_url="https://openai.torob.ir/v1",
+        api_key=settings.OPENAI_API_KEY,
+        base_url=settings.OPENAI_BASE_URL,
     )
 
     text = text.replace("\n", " ")
@@ -14,6 +41,15 @@ def get_embedding(text: str):
     )
 
     return response.data[0].embedding
+
+
+def get_nearest_document(prompt: str):
+    embedding = get_embedding(prompt)
+    return (
+        Bot.objects.order_by(L2Distance("document_vector", embedding))
+        .first()
+        .document_text
+    )
 
 
 def get_prompt(context: str, query: str) -> str:
@@ -32,21 +68,21 @@ def get_conversation_title(query: str):
     )
 
     client = OpenAI(
-        api_key="C9vpBLBZkAbvbvimiOogyxJ8bOiLRkv3",
-        base_url="https://openai.torob.ir/v1",
+        api_key=settings.OPENAI_API_KEY,
+        base_url=settings.OPENAI_BASE_URL,
     )
 
     title = client.chat.completions.create(
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt,
-                },
-            ],
-            model="gpt-3.5-turbo",
-            frequency_penalty=1,
-            n=1,
-            temperature=1
-        )
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            },
+        ],
+        model="gpt-3.5-turbo",
+        frequency_penalty=1,
+        n=1,
+        temperature=1,
+    )
 
     return title.choices[0].message.content
