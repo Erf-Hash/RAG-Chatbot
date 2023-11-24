@@ -22,10 +22,16 @@
             <div class="chat-messages">
                 <!-- Display chat messages here -->
                 <div class="message received flex items-center mb-2  border rounded p-2 mb-4 hover:bg-gray-100">
-                    <button class="btn-like">👍</button>
-                    <button class="btn-dislike">👎</button>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="submit" value="👍">
+                    </form>                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="submit" value="👎">
+                    </form>                    
                     <div class="message-content ml-2">{{ responses }}</div>
-                    </div>
+                </div>
             </div>
             <!-- Message Input -->
             <div class="message-input flex items-center">

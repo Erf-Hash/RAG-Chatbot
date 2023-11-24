@@ -40,17 +40,23 @@
                 </li>
             </ul>
         {% endfor %}
-        <!-- Pagination -->
+        <footer>
+            <div class="container mx-auto">
+                <a href="{% url 'admin:index' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">Create New Chat</a>
+            </div>
+        </footer>
+            <!-- Pagination -->
         {% for conversations in conversations_list %}
             <div class="pagination flex space-x-2">
-                <a href="{% url 'chat_details' id=conversations.pk %}"
+                <a href="{% url 'chat_details' id=conversations.pk %}"></a>
+            </div>
         {% endfor %}
-    </div>
-    <footer>
-        <div class="container mx-auto">
-            <a href="{% url 'admin:index' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">Create New Chat</a>
-        </div>
-    </footer>
+            
+        {% for message in messages_list %}
+            <div class="chat-list">
+                <a class="chat-item border rounded p-2 mb-4 hover:bg-gray-100">{{ message.message }}</a>
+            </div>
+        {% endfor %}
 </body>
 </html>
 

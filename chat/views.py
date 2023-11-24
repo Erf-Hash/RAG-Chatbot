@@ -8,7 +8,6 @@ from django.urls import reverse
 from .models import Bot, Conversation, Message
 from .forms import ChatForm
 from pgvector.django import L2Distance
-
 from .utilities import (
     get_prompt,
     get_conversation_title,
@@ -18,7 +17,7 @@ from .utilities import (
 
 
 def text_search(query: str):
-    vector = SearchVector('message')
+    vector = SearchVector("message")
     search_query = SearchQuery(query)
     return (
         Message.objects.annotate(rank=SearchRank(vector, search_query))
@@ -63,10 +62,21 @@ def register(request: HttpRequest):
 @login_required
 def chat_list(request: HttpRequest):
     bot_list = Bot.objects.filter(creator=request.user)
-    conversations_list = Conversation.objects.all()
+    conversations_list = Conversation.objects.all().filter(bot__creator=request.user)
     query = request.GET.get("query")
     if query:
-        messages_list = text_search(query).filter(creator=request.user)
+        messages_list = text_search(query).filter(
+            conversation_id__bot__creator=request.user
+        )
+        return render(
+            request,
+            "chat-list.html",
+            {
+                "bot_list": bot_list,
+                "conversations_list": conversations_list,
+                "messages_list": messages_list,
+            },
+        )
 
     return render(
         request,
@@ -74,7 +84,6 @@ def chat_list(request: HttpRequest):
         {
             "bot_list": bot_list,
             "conversations_list": conversations_list,
-            "messages_list": messages_list
         },
     )
 
@@ -86,6 +95,7 @@ def create_chat(request: HttpRequest):
 
 @login_required
 def chat_details(request: HttpRequest, id: int):
+    print(request.POST)
     id = int(id)
     if id > 0:
         conversation = Conversation.objects.get(pk=id)
@@ -128,8 +138,6 @@ def chat_details(request: HttpRequest, id: int):
         conversation=conversation,
     )
     bot_message.save()
-
-    # add messages to conversation
 
     return render(
         request,
