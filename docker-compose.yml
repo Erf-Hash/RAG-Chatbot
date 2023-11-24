@@ -3,25 +3,30 @@ version: '3.8'
 services: 
   django:
     container_name: django
-    port:
+    ports:
       - "8000:8000"
     image: chatbot:111111
     build: .
+    environment: 
+      - SECRET_KEY=django-insecure-x=xb)guzp0@+0eelb=c+-+n+2zd=#6&sweh%1pyc9gsuo%!^6k
+      - OPENAI_API_KEY=C9vpBLBZkAbvbvimiOogyxJ8bOiLRkv3
+      - OPENAI_BASE_URL=https://openai.torob.ir/v1
     depends_on:
       - postgres
     command: bash -c "python3 /app/manage.py runserver"
+    network_mode: "host" 
     
 
   postgres:
     container_name: postgres
-    port:
+    ports:
       - "5432:5432"
     image: ankane/pgvector:latest
     environment:
       - POSTGRES_PASSWORD=postgres
     volumes:
      - vol1:/data
-
+    network_mode: "host" 
   
 volumes:
   vol1:
