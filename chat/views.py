@@ -95,7 +95,12 @@ def create_chat(request: HttpRequest):
 
 @login_required
 def chat_details(request: HttpRequest, id: int):
-    print(request.POST)
+    if request.method != "POST":
+        form = ChatForm()
+        return render(
+            request, "chat-details.html", {"form": form, "conversation": conversation}
+        )
+
     id = int(id)
     if id > 0:
         conversation = Conversation.objects.get(pk=id)
@@ -105,11 +110,36 @@ def chat_details(request: HttpRequest, id: int):
         conversation = Conversation(bot=chatbot, title="DEFAULT")
         conversation.save()
 
-    if request.method != "POST":
-        form = ChatForm()
-        return render(
-            request, "chat-details.html", {"form": form, "conversation": conversation}
+    like = request.POST.get("like")
+
+    if like == "True":
+        chatbot.score += 1
+        chatbot.save()
+
+    if like == "False":
+        chatbot.score += 1
+        chatbot.save()    
+        last_message = Message.objects.latest('pk')
+        chat_completion = chat(prompt, frequence_penalty=1, temperature=0.8)
+        user_message = Message(
+            message=last_message.message, conversation=conversation
         )
+        user_message.save()
+        bot_message = Message(
+            message=chat_completion.choices[0].message.content,
+            conversation=conversation,
+        )
+        bot_message.save()
+
+        return render(
+            request,
+            "chat-details.html",
+            {
+                "form": form,
+                "responses": bot_message.message,
+            },
+        )
+
 
     form = ChatForm(request.POST)
     if not form.is_valid():
@@ -127,7 +157,7 @@ def chat_details(request: HttpRequest, id: int):
         conversation.title = get_conversation_title(form.cleaned_data["query"])
         conversation.save()
 
-    chat_completion = chat(prompt, frequence_penalty=1)
+    chat_completion = chat(prompt, frequence_penalty=1, temperature=0.8)
 
     user_message = Message(
         message=form.cleaned_data["query"], conversation=conversation

@@ -9,6 +9,7 @@ class Bot(models.Model):
     title = models.CharField(max_length=50, default=None)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     document_text = models.CharField(max_length=800)
+    score = models.IntegerField()
     document_vector = VectorField(dimensions=1536, blank=True)
 
     def save(self, *args, **kwargs):

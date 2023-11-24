@@ -6,7 +6,7 @@ admin.site.site_header = "Chat Bot Website Administration"
 
 
 class BotAdmin(admin.ModelAdmin):
-    list_display = ["name", "title", "creator"]
+    list_display = ["name", "title", "creator", "score"]
     list_filter = []
     search_fields = ("name",)
 
@@ -15,10 +15,18 @@ class BotAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if obj.creator is None:
             obj.creator = request.user
+            
+        if obj.score is None:
+            obj.score = 0
+
         obj.save()
 
     def get_queryset(self, request):
+        if request.user.is_superuser:
+            return super(BotAdmin, self).get_queryset(request)
+        
         return super(BotAdmin, self).get_queryset(request).filter(creator = request.user)
+        
 
 
 class ConversationAdmin(admin.ModelAdmin):
