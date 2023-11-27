@@ -33,7 +33,8 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 OPENAI_BASE_URL = os.getenv('OPENAI_BASE_URL', None)
 
 ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['https://django-chatbot.darkube.app/']
+CSRF_COOKIE_DOMAIN = 'https://django-chatbot.darkube.app'
+CSRF_TRUSTED_ORIGINS = ['https://*.darkube.app']
 
 
 # Application definition
