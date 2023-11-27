@@ -10,12 +10,12 @@ class BotAdmin(admin.ModelAdmin):
     list_filter = []
     search_fields = ("name",)
 
-    fields = ("name", "title", "document_text")
+    fields = ("name", "title", "document_text", "is_active")
 
     def save_model(self, request, obj, form, change):
         if obj.creator is None:
             obj.creator = request.user
-            
+                
         if obj.score is None:
             obj.score = 0
 
@@ -25,7 +25,7 @@ class BotAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return super(BotAdmin, self).get_queryset(request)
         
-        return super(BotAdmin, self).get_queryset(request).filter(creator = request.user)
+        return super(BotAdmin, self).get_queryset(request).filter(creator = request.user).filter(is_active = True)
         
 
 

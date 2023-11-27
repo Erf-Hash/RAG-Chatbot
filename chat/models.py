@@ -11,6 +11,7 @@ class Bot(models.Model):
     document_text = models.CharField(max_length=800)
     score = models.IntegerField()
     document_vector = VectorField(dimensions=1536, blank=True)
+    is_active = models.BooleanField()
 
     def save(self, *args, **kwargs):
         self.document_vector = get_embedding(self.document_text)

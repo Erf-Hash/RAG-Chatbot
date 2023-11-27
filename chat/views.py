@@ -95,12 +95,6 @@ def create_chat(request: HttpRequest):
 
 @login_required
 def chat_details(request: HttpRequest, id: int):
-    if request.method != "POST":
-        form = ChatForm()
-        return render(
-            request, "chat-details.html", {"form": form, "conversation": conversation}
-        )
-
     id = int(id)
     if id > 0:
         conversation = Conversation.objects.get(pk=id)
@@ -110,26 +104,42 @@ def chat_details(request: HttpRequest, id: int):
         conversation = Conversation(bot=chatbot, title="DEFAULT")
         conversation.save()
 
+    if request.method != "POST":
+        form = ChatForm()
+        return render(
+            request, "chat-details.html", {"form": form, "conversation": conversation}
+        )
+
     like = request.POST.get("like")
 
     if like == "True":
         chatbot.score += 1
         chatbot.save()
+        last_message = Message.objects.latest("pk")
+        form = ChatForm()
+        return render(
+            request, "chat-details.html", {"form": form, "conversation": conversation, "responses": last_message.message}
+        )
 
     if like == "False":
-        chatbot.score += 1
-        chatbot.save()    
-        last_message = Message.objects.latest('pk')
-        chat_completion = chat(prompt, frequence_penalty=1, temperature=0.8)
-        user_message = Message(
-            message=last_message.message, conversation=conversation
+        chatbot.score -= 1
+        chatbot.save()
+        last_message = Message.objects.latest("pk")
+        nearby_documents = (
+        Bot.objects.order_by(L2Distance("document_vector", get_embedding(last_message.message)))
+        .first()
+        .document_text
         )
+        prompt = get_prompt(context=nearby_documents, query=last_message.message)
+        chat_completion = chat(prompt=prompt, frequence_penalty=1, temperature=0.8)
+        user_message = Message(message=last_message.message, conversation=conversation)
         user_message.save()
         bot_message = Message(
             message=chat_completion.choices[0].message.content,
             conversation=conversation,
         )
         bot_message.save()
+        form = ChatForm()
 
         return render(
             request,
@@ -139,7 +149,6 @@ def chat_details(request: HttpRequest, id: int):
                 "responses": bot_message.message,
             },
         )
-
 
     form = ChatForm(request.POST)
     if not form.is_valid():
